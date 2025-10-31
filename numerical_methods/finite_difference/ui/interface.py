@@ -7,6 +7,7 @@ import threading
 from pathlib import Path
 import sys
 import os
+import signal
 
 # Добавляем пути для импорта
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'bridge', 'python'))
@@ -18,6 +19,8 @@ try:
     from analytics.analyzer import ResultAnalyzer
 except ImportError as e:
     print(f"Import error: {e}")
+
+
     # Создаем заглушки для отладки
     class DifferentialEquationSolver:
         def solve(self, n, task_type):
@@ -31,12 +34,16 @@ except ImportError as e:
                 'v2': v + 0.05 if task_type == 'main' else None
             }
 
+
     class ResultPlotter:
         def create_comparison_plot(self, results, n): return "plot.png"
+
         def create_error_analysis_plot(self, results, n): return "error_plot.png"
+
 
     class ResultAnalyzer:
         def __init__(self, epsilon=0.5e-6): pass
+
         def analyze(self, results):
             return {
                 'max_difference': 0.1,
@@ -47,8 +54,10 @@ except ImportError as e:
                 'epsilon_type': 'ε1' if results['task_type'] == 'test' else 'ε2',
                 'is_precise': False
             }
+
         def generate_report(self, analysis, n):
             return f"Отчет для {analysis['task_type']}, n={n}"
+
 
 class SolverApp:
     """Графический интерфейс для решения дифференциальных уравнений"""
@@ -61,13 +70,26 @@ class SolverApp:
         self.current_results = None
         self.current_analysis = None
 
+        # Обработка Ctrl+C
+        signal.signal(signal.SIGINT, self.signal_handler)
+
         self.setup_ui()
+
+    def signal_handler(self, signum, frame):
+        """Обработчик Ctrl+C"""
+        print("\nЗавершение работы...")
+        self.root.quit()
+        self.root.destroy()
+        sys.exit(0)
 
     def setup_ui(self):
         """Настраивает графический интерфейс"""
         self.root = tk.Tk()
         self.root.title("Численные методы - Решение ДУ")
         self.root.geometry("1200x800")
+
+        # Обработка закрытия окна
+        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
 
         # Основной фрейм
         main_frame = ttk.Frame(self.root)
@@ -145,6 +167,12 @@ class SolverApp:
                    command=self.save_plots).pack(side=tk.LEFT, padx=(0, 5))
         ttk.Button(export_frame, text="Сохранить отчет",
                    command=self.save_report).pack(side=tk.LEFT)
+
+    def on_closing(self):
+        """Обработчик закрытия окна"""
+        print("Закрытие приложения...")
+        self.root.quit()
+        self.root.destroy()
 
     def solve(self):
         """Запускает решение в отдельном потоке"""
@@ -281,4 +309,7 @@ class SolverApp:
 
     def run(self):
         """Запускает приложение"""
-        self.root.mainloop()
+        try:
+            self.root.mainloop()
+        except KeyboardInterrupt:
+            self.on_closing()
