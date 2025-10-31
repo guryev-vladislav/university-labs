@@ -6,25 +6,56 @@
 #include <stdexcept>
 #include <cmath>
 
-class tridiagonal_solver {
+class TridiagonalSolver {
 private:
     int nodes;
-    std::vector<double> v;
+    std::vector<double> V;
     std::vector<double> alpha;
     std::vector<double> beta;
 
-    void normalize_system();
-    void forward_sweep(const std::vector<double>& a, const std::vector<double>& b,
-                      const std::vector<double>& c, const std::vector<double>& phi);
-    void backward_sweep(const std::vector<double>& a, const std::vector<double>& c,
-                       const std::vector<double>& phi);
-
 public:
-    explicit tridiagonal_solver(int n);
-    void solve(const std::vector<double>& a, const std::vector<double>& b,
-               const std::vector<double>& c, const std::vector<double>& phi);
-    std::vector<double> get_solution() const;
-    void resize(int n);
+    explicit TridiagonalSolver(int n) : nodes(n) {
+        V.resize(nodes);
+        alpha.resize(nodes, 0.);
+        beta.resize(nodes, 0.);
+    }
+
+    void solve(const std::vector<double>& A, const std::vector<double>& B,
+               const std::vector<double>& C, const std::vector<double>& Phi) {
+        if (A.size() != nodes || B.size() != nodes || C.size() != nodes || Phi.size() != nodes) {
+            throw std::invalid_argument("Vector sizes don't match node count");
+        }
+
+        // Прямой ход
+        alpha[1] = -B[0] / C[0];
+        beta[1] = Phi[0] / C[0];
+
+        for (int i = 1; i < nodes - 1; i++) {
+            double denom = C[i] + A[i] * alpha[i];
+            if (std::abs(denom) < 1e-12) {
+                throw std::runtime_error("Matrix is singular");
+            }
+            alpha[i + 1] = -B[i] / denom;
+            beta[i + 1] = (Phi[i] - A[i] * beta[i]) / denom;
+        }
+
+        // Обратный ход
+        V[nodes - 1] = (Phi[nodes - 1] - A[nodes - 1] * beta[nodes - 1]) /
+                       (C[nodes - 1] + A[nodes - 1] * alpha[nodes - 1]);
+
+        for (int i = nodes - 2; i >= 0; i--) {
+            V[i] = alpha[i + 1] * V[i + 1] + beta[i + 1];
+        }
+    }
+
+    std::vector<double> get_solution() const { return V; }
+
+    void resize(int n) {
+        nodes = n;
+        V.resize(nodes, 0.);
+        alpha.resize(nodes, 0.);
+        beta.resize(nodes, 0.);
+    }
 };
 
 #endif

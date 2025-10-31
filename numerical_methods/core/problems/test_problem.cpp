@@ -2,27 +2,27 @@
 #include "test_problem.h"
 #include <cmath>
 
-double test_problem::conductivity(double x) const {
+double TestProblem::conductivity(double x) const {
     return x < xi ? 0.5 : 1.25;
 }
 
-double test_problem::reaction(double x) const {
+double TestProblem::reaction(double x) const {
     return x < xi ? 1.0 : 0.0625;
 }
 
-double test_problem::source(double x) const {
+double TestProblem::source(double x) const {
     return x < xi ? 1.0 : 2.5;
 }
 
-double test_problem::analytical_solution(double x) const {
-    const double c1 = 0.58744204;
-    const double c2 = -1.58744204;
-    const double c3 = -16.23731987;
-    const double c4 = -23.37825944;
+double TestProblem::analytical_solution(double x) const {
+    const double C1 = 0.58744204;
+    const double C2 = -1.58744204;
+    const double C3 = -16.23731987;
+    const double C4 = -23.37825944;
 
     if (x < xi) {
-        return c1 * std::exp(std::sqrt(2.) * x) + c2 * std::exp(-std::sqrt(2.) * x) + 1.0;
+        return C1 * std::exp(std::sqrt(2.) * x) + C2 * std::exp(-std::sqrt(2.) * x) + 1.0;
     } else {
-        return c3 * std::exp(std::sqrt(0.05) * x) + c4 * std::exp(-std::sqrt(0.05) * x) + 40.0;
+        return C3 * std::exp(std::sqrt(0.05) * x) + C4 * std::exp(-std::sqrt(0.05) * x) + 40.0;
     }
 }
