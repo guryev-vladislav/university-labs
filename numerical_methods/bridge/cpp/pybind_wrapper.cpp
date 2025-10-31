@@ -25,7 +25,7 @@ TaskData solve_problem(const std::string& problem_type, int nodes) {
             data.push(TaskData::DataType::X, x);
             data.push(TaskData::DataType::V, solution[i]);
 
-            if (i * 2 < double_solution.size()) {
+            if (static_cast<size_t>(i * 2) < double_solution.size()) {
                 data.push(TaskData::DataType::V2, double_solution[i * 2]);
                 double diff = std::abs(double_solution[i * 2] - solution[i]);
                 data.push(TaskData::DataType::DIFF, diff);

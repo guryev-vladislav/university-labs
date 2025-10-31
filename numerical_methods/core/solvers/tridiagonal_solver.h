@@ -21,10 +21,14 @@ public:
     }
 
     void solve(const std::vector<double>& A, const std::vector<double>& B,
-               const std::vector<double>& C, const std::vector<double>& Phi) {
-        if (A.size() != nodes || B.size() != nodes || C.size() != nodes || Phi.size() != nodes) {
+           const std::vector<double>& C, const std::vector<double>& Phi) {
+        // Используем size_t для сравнения
+        if (A.size() != static_cast<size_t>(nodes) ||
+            B.size() != static_cast<size_t>(nodes) ||
+            C.size() != static_cast<size_t>(nodes) ||
+            Phi.size() != static_cast<size_t>(nodes)) {
             throw std::invalid_argument("Vector sizes don't match node count");
-        }
+            }
 
         // Прямой ход
         alpha[1] = -B[0] / C[0];
